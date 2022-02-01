@@ -1,0 +1,29 @@
+import RPi.GPIO as GPIO         #It imports RPi GPIO's library and it is used to control Input/Output Pins of Raspberry Pi 4
+import time                     #It imports Time Library: makes Pi wait between the steps
+GPIO.setmode(GPIO.BCM)          #BCM is an acronym for Broadcom chip-specific number. It refers to the actual name of the pin no. e.g GPIO17 in .BCM or Pin 11 in .Board
+
+TRIG=17                         #Initialization of output pin which triggers the sensor (GPIO 17 in .BCM or Pin 11 in .Board)
+ECHO=27                         #Initialization of output pin which triggers the sensor (GPIO 27 in .BCM or Pin 13 in .Board)
+
+GPIO.setup(TRIG,GPIO.OUT)       #Initialization of GPIO 17 (Trigger) as output pin
+GPIO.setup(ECHO,GPIO.IN)        #Initialization of  GPIO 27 (Echo) as input pin
+
+#Setup of Ultrasonic Sensor
+GPIO.output(TRIG,False)         #Setting TRIG pin as low for settling the ultrasonic sensor
+time.sleep(2)                   #Introduces delay in process by 2 seconds
+
+#HC-SR04 sensor requires a 10uS pulse to trigger the module, which will cause the sensor to start the ranging to obtain an echo response
+GPIO.output(TRIG,True)          #Set the trigger pin high 
+time.sleep(0.00001)             #Wait for 10us
+GPIO.output(TRIG,False)         #Set the trigger pin low
+
+while GPIO.input(ECHO)==0:      #Ensures that each signal timestamp is recorded in the correct order
+   pulse_start = time.time()    #Records the last low timestamp for ECHO (pulse_start), Recorded timestamp bt time.time() will be the latest time at which ECHO pin was low
+while GPIO.input(ECHO)==1:      #Once a signal is received ECHO is set to high
+   pulse_end = time.time()      #Records the last high timestamp for ECHO (pulse_end)
+
+pulse_duration = pulse_end - pulse_start  #Calculates the difference between the two recorded timestamps (Time taken by the signal to travel to an object and back again)
+distance = pulse_duration x 17150         #Calculation of distance from the object
+distance = round(distance, 2)             #Rounding the distance to the 2 decimal places
+print "Distance:",distance,"cm"
+GPIO.cleanup()                            #Reset the Input/Output Pins                            
